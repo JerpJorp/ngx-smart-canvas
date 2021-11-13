@@ -1,10 +1,9 @@
 # NgxSmartCanvas
 This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.2.0.
 
-The library contains a component (lib-ngx-smart-canvas) and a service (NgxSmartCanvasService)
-The component that hosts a canvas element and manages interactions by the user for tranlating (by dragging mouse) and zooming (using mouse wheel).
-The service is used to let clients know when it is ready or when a redraw is required.  Since the service is a singleton, you can assign an id string
-to each lib-ngx-smart-canvas via @input ComponentId and differentiate as the service events include the ComponentId in the event parameters
+* The library contains a component (lib-ngx-smart-canvas) and a service (NgxSmartCanvasService)
+* The component that hosts a canvas element and manages interactions by the user for tranlating (by dragging mouse) and zooming (using mouse wheel).
+* The service is used to let clients know when it is ready or when a redraw is required.  Since the service is a singleton, you can assign an id string to each lib-ngx-smart-canvas via @input ComponentId and differentiate as the service events include the ComponentId in the event parameters
 
 You as the client application can draw to the canvas.  The library service NgxSmartCanvas uses observables to let you know 
 * when the component is ready
@@ -116,6 +115,10 @@ Run `ng generate component component-name --project ngx-smart-canvas` to generat
 ## Build
 
 Run `ng build ngx-smart-canvas` to build the project. The build artifacts will be stored in the `dist/` directory.
+
+## Locally Runnning
+Run `ng build ngx-smart-canvas -watch` to build the project in watch mode.
+Run 'ng serve' to host the wrapper project 
 
 ## Publishing
 
