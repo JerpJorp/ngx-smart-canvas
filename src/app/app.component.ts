@@ -31,7 +31,7 @@ export class AppComponent implements OnInit {
   constructor(private smartCanvasSvc: NgxSmartCanvasService) {}
 
   ngOnInit(): void {
-    this.smartCanvasSvc.ready$.pipe(filter(x => x !== undefined)).subscribe(x => { this.Draw(x)});
+    this.smartCanvasSvc.ready$.pipe(filter(x => x !== undefined)).subscribe(x => { this.Draw(x as SmartCanvasInfo)});
     this.smartCanvasSvc.redrawRequest$.subscribe(x => {this.Draw(x)});
     this.smartCanvasSvc.click$.subscribe(x => this.CanvasClick(x));
     this.smartCanvasSvc.mouseOver$.subscribe(x => this.CanvasMouseOver(x));
