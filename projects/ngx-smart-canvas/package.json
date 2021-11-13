@@ -1,6 +1,6 @@
 {
   "name": "ngx-smart-canvas",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "peerDependencies": {
     "@angular/common": "^12.2.0",
     "@angular/core": "^12.2.0",
@@ -8,5 +8,10 @@
   },
   "dependencies": {
     "tslib": "^2.3.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "directory": "https://github.com/JerpJorp/ngx-smart-canvas"
+  },
+  "homepage": "https://github.com/JerpJorp/ngx-smart-canvas#readme"
 }
