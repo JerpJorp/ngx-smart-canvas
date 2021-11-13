@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { SmartCanvasInfo } from '../public-api';
 
 @Injectable({
@@ -7,8 +7,9 @@ import { SmartCanvasInfo } from '../public-api';
 })
 export class NgxSmartCanvasService {
 
+  ready$: BehaviorSubject<SmartCanvasInfo | undefined> = new BehaviorSubject<SmartCanvasInfo| undefined>(undefined);
+
   redrawRequest$: Subject<SmartCanvasInfo> = new Subject<SmartCanvasInfo>();
-  ready$: Subject<SmartCanvasInfo> = new Subject<SmartCanvasInfo>();
 
   click$: Subject<SmartCanvasInfo> = new Subject<SmartCanvasInfo>();
 

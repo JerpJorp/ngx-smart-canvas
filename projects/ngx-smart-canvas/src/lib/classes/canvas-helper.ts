@@ -10,12 +10,6 @@ export class CanvasHelper {
             x: (event.clientX - bcr.left) * scaleX,
             y: (event.clientY - bcr.top) * scaleY
         }
-
-        return {
-            x: (event.clientX) * scaleX,
-            y: (event.clientX) * scaleY
-        }
-
     }
 
     static GetCanvasCoords = function(ctx: CanvasRenderingContext2D, mouseXY:  {x: number, y: number}): {x: number, y: number} {
