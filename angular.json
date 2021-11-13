@@ -1,9 +1,12 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "cli": {
+    "analytics": "b24d21f7-8810-4797-852e-63aa410d7c35"
+  },
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "ngx-smart-canvas": {
+    "ngx-smart-canvas-wrapper": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:application": {
@@ -17,7 +20,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/ngx-smart-canvas",
+            "outputPath": "dist/ngx-smart-canvas-wrapper",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -29,7 +32,8 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [
+            ]
           },
           "configurations": {
             "production": {
@@ -68,10 +72,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "ngx-smart-canvas:build:production"
+              "browserTarget": "ngx-smart-canvas-wrapper:build:production"
             },
             "development": {
-              "browserTarget": "ngx-smart-canvas:build:development"
+              "browserTarget": "ngx-smart-canvas-wrapper:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -79,7 +83,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "ngx-smart-canvas:build"
+            "browserTarget": "ngx-smart-canvas-wrapper:build"
           }
         },
         "test": {
@@ -100,7 +104,38 @@
           }
         }
       }
+    },
+    "ngx-smart-canvas": {
+      "projectType": "library",
+      "root": "projects/ngx-smart-canvas",
+      "sourceRoot": "projects/ngx-smart-canvas/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/ngx-smart-canvas/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/ngx-smart-canvas/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/ngx-smart-canvas/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/ngx-smart-canvas/src/test.ts",
+            "tsConfig": "projects/ngx-smart-canvas/tsconfig.spec.json",
+            "karmaConfig": "projects/ngx-smart-canvas/karma.conf.js"
+          }
+        }
+      }
     }
   },
-  "defaultProject": "ngx-smart-canvas"
+  "defaultProject": "ngx-smart-canvas-wrapper"
 }

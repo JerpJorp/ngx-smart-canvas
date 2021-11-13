@@ -25,7 +25,7 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/ngx-smart-canvas-wrapper'),
+      dir: require('path').join(__dirname, '../../coverage/ngx-smart-canvas'),
       subdir: '.',
       reporters: [
         { type: 'html' },

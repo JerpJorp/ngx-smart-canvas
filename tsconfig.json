@@ -11,6 +11,12 @@
     "sourceMap": true,
     "declaration": false,
     "downlevelIteration": true,
+    "paths": {
+      "ngx-smart-canvas": [
+        "dist/ngx-smart-canvas/ngx-smart-canvas",
+        "dist/ngx-smart-canvas"
+      ]
+    },
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
