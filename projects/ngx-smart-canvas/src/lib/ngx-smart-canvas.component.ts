@@ -1,9 +1,8 @@
 import { Component, Input, ViewChild, ElementRef, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
-import { Subject, Subscription } from 'rxjs';
-import { debounceTime, takeUntil } from 'rxjs/operators';
-import { MouseToCanvas, SmartCanvasInfo } from '../public-api';
-
+import { Subject  } from 'rxjs';
 import { CanvasHelper } from './classes/canvas-helper';
+import { MouseToCanvas } from './classes/mouse-to-canvas';
+import { SmartCanvasInfo } from './classes/smart-canvas-info';
 import { NgxSmartCanvasService } from './ngx-smart-canvas.service';
 
 @Component({
@@ -16,13 +15,10 @@ import { NgxSmartCanvasService } from './ngx-smart-canvas.service';
     '.canvas-overlay { z-index:2; position:absolute; top:10px; left:10px} '
   ]
 })
-export class NgxSmartCanvasComponent implements OnInit, OnDestroy, OnChanges {
+export class NgxSmartCanvasComponent implements OnInit, OnDestroy {
 
   //  true -> wheel zooms in and out. false -> wheel is handled normally (scroll)
   @Input() zoomable = true; 
-
-  // debounce lag when user moves around mouse on canvas.  Affects dragging and mouseover frequency.  Higher number isn't as fluid but less processor intensive
-  @Input() mouseMoveDebounceTime = 1; 
 
   // all events are pushed through a service.  if client is using multiiple smart canvas components they can assign a different id so they know which one is 
   // is publishing a service event and react accordingly   
@@ -33,26 +29,14 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, OnChanges {
   canvas: ElementRef<HTMLCanvasElement> | undefined;
   ctx: CanvasRenderingContext2D | null | undefined = undefined;
 
-  drag = false;
   dragStart: { x: number, y: number } = { x: 0, y: 0 };
   dragEnd: { x: number, y: number } = { x: 0, y: 0 };
-
-  moveDebounce: Subject<MouseEvent> = new Subject<MouseEvent>();
-  moveDebounceSubscription: Subscription | undefined;
 
   showReset = false;
 
   private destroyed$: Subject<void> = new Subject<void>();
 
-  constructor(private svc: NgxSmartCanvasService) { 
-    this.setDebounceTime();
-  }
- 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['mouseMoveDebounceTime']) {
-      this.setDebounceTime();
-    }
-  }
+  constructor(private svc: NgxSmartCanvasService) { }
 
   ngOnInit(): void {
     this.ctx = this.canvas?.nativeElement.getContext('2d');
@@ -62,88 +46,55 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, OnChanges {
   ngOnDestroy(): void {
     this.destroyed$.next();
   }
-
-  canvasMouseDown(event: MouseEvent) {
-
-    if (this.ctx ) {
-      const element = this.canvas?.nativeElement as HTMLCanvasElement
-      const translatedXY = CanvasHelper.MouseToCanvas(element, this.ctx, event);
-      this.svc.click$.next(this.createInfo(translatedXY));
-
-      this.dragStart = {
-        x: event.pageX - element.offsetLeft,
-        y: event.pageY - element.offsetTop
-      }
-
-      this.drag = true;
-    }
-  }
-
+ 
   canvasWheel(event: WheelEvent) {
     if (this.ctx && this.zoomable) {
-
       const txfrmA = this.ctx.getTransform().a;
       let inverter = event.deltaY > 0 ? 0.1 : -0.1;
-
       inverter = inverter / txfrmA;
-      
       const translatedXY = CanvasHelper.MouseToCanvas(this.ctx.canvas, this.ctx, event);
-
       this.ctx.translate(translatedXY.canvasXY.x* txfrmA, translatedXY.canvasXY.y* txfrmA);
       this.ctx.scale(1 + inverter, 1 + inverter);
       this.ctx.translate(translatedXY.canvasXY.x*-1* txfrmA, translatedXY.canvasXY.y*-1* txfrmA);
-      CanvasHelper.clear(this.ctx);
-      this.svc.redrawRequest$.next(this.createInfo(undefined));
-      this.checkShowReset();
-      return false  
+      this.redrawRequest(this.ctx);
+      return false;
     }
     return true;
   }
 
   canvasMouseClick(event: MouseEvent) {
-    this.drag = false;
-  }
-
-  canvasMouseMove(event: MouseEvent) {
-
-    if (this.ctx) {
-      if (this.drag) {
-        this.moveDebounce.next(event);
-      } else {
-        const element = this.canvas?.nativeElement as HTMLCanvasElement;
-        const translatedXY = CanvasHelper.MouseToCanvas(element, this.ctx, event);
-        this.svc.mouseOver$.next(this.createInfo(translatedXY));
-      }
+    if (this.ctx ) {
+      const element = this.canvas?.nativeElement as HTMLCanvasElement
+      const translatedXY = CanvasHelper.MouseToCanvas(element, this.ctx, event);
+      this.svc.click$.next(this.createInfo(translatedXY));
     }
   }
 
-  debounceMouseMove(event: MouseEvent) {
+  canvasDragStart(event: DragEvent) { 
+    this.dragStart = { x: event.x, y: event.y }
+  }
 
-    const element = this.canvas?.nativeElement as HTMLCanvasElement;
-
-    this.dragEnd = {
-      x: event.pageX - element.offsetLeft,
-      y: event.pageY - element.offsetTop
-    }
+  canvasDrop(event: DragEvent) { 
+    
+    this.dragEnd = { x: event.x, y: event.y }
 
     if (this.ctx) {      
       this.clear(this.ctx);
       const txfrm = this.ctx.getTransform();      
       this.ctx?.translate((this.dragEnd.x - this.dragStart.x) / txfrm.a, (this.dragEnd.y - this.dragStart.y) / txfrm.d);
-      this.dragStart = this.dragEnd;
-
-      CanvasHelper.clear(this.ctx);
-      this.svc.redrawRequest$.next(this.createInfo(undefined));      
-      this.checkShowReset();
+      this.redrawRequest(this.ctx);
     }
+  }
+
+  canvasDragOver(event: any) { 
+    event.preventDefault();
   }
 
   resetCanvasZoom() {
     if (this.ctx) {
       const txfrm = this.ctx.getTransform();
       this.ctx.setTransform(1,0,0,1,txfrm.e,txfrm.f);
-      CanvasHelper.clear(this.ctx);
-      this.svc.redrawRequest$.next(this.createInfo(undefined));      
+      this.redrawRequest(this.ctx);
     }
   }
 
@@ -151,8 +102,7 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, OnChanges {
     if (this.ctx) {
       const txfrm = this.ctx.getTransform();
       this.ctx.setTransform(txfrm.a,0,0,txfrm.d,0,0);
-      CanvasHelper.clear(this.ctx);
-      this.svc.redrawRequest$.next(this.createInfo(undefined));      
+      this.redrawRequest(this.ctx);
     }
   }
 
@@ -160,9 +110,14 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, OnChanges {
     if (this.ctx) {
       const txfrm = this.ctx.getTransform();
       this.ctx.setTransform(txfrm.a,0,0,txfrm.d,0,0);
-      CanvasHelper.clear(this.ctx);
-      this.svc.redrawRequest$.next(this.createInfo(undefined));
+      this.redrawRequest(this.ctx);
     }
+  }
+
+  private redrawRequest(ctx: CanvasRenderingContext2D) {
+    CanvasHelper.clear(ctx);
+    this.svc.redrawRequest$.next(this.createInfo(undefined));
+    this.checkShowReset();
   }
 
   clear(ctx: CanvasRenderingContext2D) {
@@ -172,13 +127,6 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, OnChanges {
     ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
     ctx.restore();
     
-  }
-
-  setDebounceTime() {
-    if (this.moveDebounceSubscription) {
-      this.moveDebounceSubscription.unsubscribe();
-    }
-    this.moveDebounceSubscription = this.moveDebounce.pipe(debounceTime(this.mouseMoveDebounceTime)).subscribe(x => this.debounceMouseMove(x));
   }
 
   checkShowReset() {
