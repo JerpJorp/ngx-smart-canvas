@@ -1,10 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 
-import { 
-    faAngleDoubleLeft, faAngleDoubleRight,
-    faCalendar, faEnvelope, faQuestion, faTasks, faUser   } from '@fortawesome/free-solid-svg-icons'
-import { faDizzy  } from '@fortawesome/free-regular-svg-icons'
-
 import { CanvasHelper, NgxSmartCanvasService, SmartCanvasInfo } from 'ngx-smart-canvas';
 import { filter } from 'rxjs/operators';
 
@@ -14,15 +9,6 @@ import { filter } from 'rxjs/operators';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-
-  faDizzy = faDizzy;
-  faCalendar = faCalendar;
-  faEnvelope = faEnvelope;
-  faQuestion = faQuestion;
-  faTasks = faTasks;
-  faUser = faUser;
-  faAngleDoubleLeft = faAngleDoubleLeft;
-  faAngleDoubleRight = faAngleDoubleRight;
 
   showSideBar = true;
 
@@ -64,12 +50,20 @@ export class AppComponent implements OnInit {
     }
   }
 
-  Draw(x: SmartCanvasInfo) {    
-    x.ctx.fillStyle = 'grey';
-    x.ctx.strokeStyle = 'black';
-    //CanvasHelper comes with library. has calculations for translating mouse to canvas and a rounded rectangle drawer
-    CanvasHelper.roundRect(x.ctx, this.rectangle.x, this.rectangle.y, this.rectangle.width, this.rectangle.height, 5);
-    x.ctx.fill();
+  Draw(sci: SmartCanvasInfo) {    
+    sci.ctx.fillStyle = sci.componentId === 'A' ? 'grey' : 'blue';
+    sci.ctx.strokeStyle = 'black';
+    Array(5).fill(0).forEach( (v, rowIdx) => {
+      Array(5).fill(0).forEach( (v, colIdx) => {
+        const x = this.rectangle.x + (this.rectangle.width + 20) * rowIdx;
+        const y = this.rectangle.y + (this.rectangle.height + 20) * colIdx;
+        //CanvasHelper comes with library. has calculations for translating mouse to canvas and a rounded rectangle drawer
+        CanvasHelper.roundRect(sci.ctx, x, y, this.rectangle.width, this.rectangle.height, 5);
+        sci.ctx.fill();
+              
+      });      
+    });
+
   }
 
 

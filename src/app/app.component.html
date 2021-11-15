@@ -1,50 +1,52 @@
-
-<div class="container-fluid p-0">
-  
-  <!-- Bootstrap row -->
-  <div class="row" id="body-row">
-      <!-- Sidebar -->
-      <div id="sidebar-container" [ngClass]='{"sidebar-expanded": showSideBar == true, "sidebar-collapsed": showSideBar == false}' 
-         class="d-none d-md-block">
-          <ul class="list-group">
-
-              <a href="#" class="bg-dark list-group-item list-group-item-action">
-                  <div class="d-flex w-100 justify-content-start align-items-center">
-                      <fa-icon [icon]="faCalendar"></fa-icon>                     
-                      <span class="menu-collapsed ms-3" [ngClass]='{"d-none": showSideBar == false}'>Calendar</span>
-                  </div>
-              </a>
-              <a href="#" class="bg-dark list-group-item list-group-item-action">
-                  <div class="d-flex w-100 justify-content-start align-items-center">                      
-                      <fa-icon [icon]="faEnvelope"></fa-icon>
-                      <span class="ms-3 menu-collapsed" [ngClass]='{"d-none": showSideBar == false}'>Messages <span class="badge badge-pill badge-primary ml-2">5</span></span>
-                  </div>
-              </a>
-                            
-              <a href="#" class="bg-dark list-group-item list-group-item-action">
-                  <div class="d-flex w-100 justify-content-start align-items-center">
-                    <fa-icon [icon]="faQuestion"></fa-icon>
-                      <span class="ms-3 menu-collapsed" [ngClass]='{"d-none": showSideBar == false}'>Help</span>
-                  </div>
-              </a>
-              <a href="#" (click)="toggleSidebar()" class="bg-dark list-group-item list-group-item-action d-flex align-items-center">
-                  <div class="d-flex w-100 justify-content-start align-items-center">
-                      <span id="collapse-icon" class="fa fa-2x mr-3"></span>
-                      <fa-icon *ngIf="showSideBar == true" [icon]="faAngleDoubleRight"></fa-icon>
-                      <fa-icon *ngIf="showSideBar == false" [icon]="faAngleDoubleLeft"></fa-icon>
-                      <span id="collapse-text" class="ms-3 menu-collapsed" [ngClass]='{"d-none": showSideBar == false}'>Collapse</span>
-                  </div>
-              </a>
-          </ul><!-- List Group END-->
-      </div><!-- sidebar-container END -->
-  
-      <!-- MAIN -->
-      <div  [ngClass]="{'col-md-11': showSideBar === false, 'col-md-10': showSideBar === true}">
-        <!-- <lib-ngx-smart-canvas [zoomable]="false"></lib-ngx-smart-canvas> -->
-        <lib-ngx-smart-canvas></lib-ngx-smart-canvas>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Navbar</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Dropdown
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="#">Action</a></li>
+              <li><a class="dropdown-item" href="#">Another action</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+          </li>
+        </ul>
+        <form class="d-flex">
+          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
       </div>
-      
-  </div><!-- body-row END -->
-    
-    
-  </div><!-- container -->
+    </div>
+  </nav>
+  
+  
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-6 border">
+        <lib-ngx-smart-canvas [componentId]="'A'"></lib-ngx-smart-canvas>
+      </div>
+      <div class="col-md-6">
+        <lib-ngx-smart-canvas [componentId]="'B'" 
+            [settings]="{zoomable: true, minimumZoom: 0.5, maximumZoom: 2, canvasWidth: 1000, canvasHeight: 1000}">
+        </lib-ngx-smart-canvas>
+      </div>
+
+    </div>
+  </div>
+

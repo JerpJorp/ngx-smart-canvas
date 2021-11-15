@@ -1,5 +1,4 @@
 # NgxSmartCanvas
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.2.0.
 
 * The library contains a component (lib-ngx-smart-canvas) and a service (NgxSmartCanvasService)
 * The component that hosts a canvas element and manages interactions by the user for tranlating (by dragging mouse) and zooming (using mouse wheel).
@@ -36,6 +35,12 @@ The component will capture user mouse down/drag/up as well as scroll wheel activ
 ## HTML
 ```html
 <lib-ngx-smart-canvas></lib-ngx-smart-canvas>
+```
+With all settings customized:
+```html
+<lib-ngx-smart-canvas [componentId]="'B'" 
+   [settings]="{zoomable: true, minimumZoom: 0.5, maximumZoom: 2, canvasWidth: 1000, canvasHeight: 1000}">
+</lib-ngx-smart-canvas>
 ```
 ## Component class
 ```javascript
@@ -89,45 +94,19 @@ constructor(private smartCanvasSvc: NgxSmartCanvasService) {}
   ```
  ## lib-ngx-smart-canvas inputs 
   ```javascript
-    //  true -> wheel zooms in and out. false -> wheel is handled normally (scroll)
-  @Input() zoomable = true; 
-
-  // debounce lag when user moves around mouse on canvas.  Affects dragging and mouseover frequency.  Higher number isn't as fluid but less processor intensive
-  @Input() mouseMoveDebounceTime = 1; 
-
-  // all events are pushed through a service.  if client is using multiiple smart canvas components they can assign a different id so they know which one is 
+  @Input() settings: SmartCanvasSettings = new SmartCanvasSettings();
+  // all events are pushed through a service.  if client is using multiiple smart canvas components they can assign a different id so they know which one  
   // is publishing a service event and react accordingly   
   @Input() componentId = '1';  //
+
   ```
-  ## css classes you can tweak
+
+  ```javascript
+export class SmartCanvasSettings {
+  zoomable = true;    //  true -> wheel zooms in and out. false -> wheel is handled normally (scroll)
+  minimumZoom = 0.4;
+  maximumZoom = 5;
+  canvasWidth = 2500;
+  canvasHeight = 3500;
+}
   ```
-'.canvas-container { height: 90vh; border: 1px solid rgba(250,250,250,.125); position: relative}',
-'.canvas-container-scrollable { overflow: auto }',
-'.canvas-container-noscroll { overflow: hidden }',
-'.canvas-overlay { z-index:2; position:absolute; top:10px; left:10px} '
-``` 
- 
-## Code scaffolding
-
-Run `ng generate component component-name --project ngx-smart-canvas` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project ngx-smart-canvas`.
-> Note: Don't forget to add `--project ngx-smart-canvas` or else it will be added to the default project in your `angular.json` file. 
-
-## Build
-
-Run `ng build ngx-smart-canvas` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Locally Runnning
-Run `ng build ngx-smart-canvas -watch` to build the project in watch mode.
-Run 'ng serve' to host the wrapper project 
-
-## Publishing
-
-After building your library with `ng build ngx-smart-canvas`, go to the dist folder `cd dist/ngx-smart-canvas` and run `npm publish`.
-
-## Running unit tests
-
-Run `ng test ngx-smart-canvas` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.

@@ -117,7 +117,7 @@ Run `ng generate component component-name --project ngx-smart-canvas` to generat
 Run `ng build ngx-smart-canvas` to build the project. The build artifacts will be stored in the `dist/` directory.
 
 ## Locally Runnning
-Run `ng build ngx-smart-canvas -watch` to build the project in watch mode.
+Run `ng build ngx-smart-canvas --watch` to build the project in watch mode.
 Run 'ng serve' to host the wrapper project 
 
 ## Publishing

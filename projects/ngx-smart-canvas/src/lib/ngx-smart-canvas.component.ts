@@ -1,5 +1,8 @@
-import { Component, Input, ViewChild, ElementRef, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { ThrowStmt } from '@angular/compiler';
+import { Component, Input, ViewChild, ElementRef, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { Subject  } from 'rxjs';
+import { retry } from 'rxjs/operators';
+import { SmartCanvasSettings } from '../public-api';
 import { CanvasHelper } from './classes/canvas-helper';
 import { MouseToCanvas } from './classes/mouse-to-canvas';
 import { SmartCanvasInfo } from './classes/smart-canvas-info';
@@ -9,16 +12,16 @@ import { NgxSmartCanvasService } from './ngx-smart-canvas.service';
   selector: 'lib-ngx-smart-canvas',
   templateUrl: './ngx-smart-canvas.component.html',
   styles: [
-    '.canvas-container { height: 90vh; border: 1px solid rgba(250,250,250,.125); overflow: hidden; position: relative}',
+    '.canvas-container { overflow: hidden; position: relative}',
     '.canvas-container-scrollable { overflow: auto }',
     '.canvas-container-noscroll { overflow: hidden }',
-    '.canvas-overlay { z-index:2; position:absolute; top:10px; left:10px} '
+    '.canvas-overlay { z-index:2; position:absolute; top:10px; left:10px} ',
+    '.floating-button { background-color: rgba(20,20,20, 0.05); border: 1px solid rgba(50,50,50,0.2); margin: 5px;}'
   ]
 })
-export class NgxSmartCanvasComponent implements OnInit, OnDestroy {
+export class NgxSmartCanvasComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  //  true -> wheel zooms in and out. false -> wheel is handled normally (scroll)
-  @Input() zoomable = true; 
+  @Input() settings: SmartCanvasSettings = new SmartCanvasSettings();
 
   // all events are pushed through a service.  if client is using multiiple smart canvas components they can assign a different id so they know which one is 
   // is publishing a service event and react accordingly   
@@ -29,7 +32,7 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy {
   canvas: ElementRef<HTMLCanvasElement> | undefined;
   ctx: CanvasRenderingContext2D | null | undefined = undefined;
 
-  dragStart: { x: number, y: number } = { x: 0, y: 0 };
+  dragStart: { x: number, y: number } | undefined ;
   dragEnd: { x: number, y: number } = { x: 0, y: 0 };
 
   showReset = false;
@@ -39,8 +42,12 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy {
   constructor(private svc: NgxSmartCanvasService) { }
 
   ngOnInit(): void {
-    this.ctx = this.canvas?.nativeElement.getContext('2d');
+    this.ctx = this.canvas?.nativeElement.getContext('2d');    
+  }
+
+  ngAfterViewInit(): void {
     this.svc.ready$.next(this.createInfo(undefined));
+    throw new Error('Method not implemented.');
   }
 
   ngOnDestroy(): void {
@@ -48,22 +55,46 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy {
   }
  
   canvasWheel(event: WheelEvent) {
-    if (this.ctx && this.zoomable) {
+    if (this.ctx && this.settings.zoomable) {
       const txfrmA = this.ctx.getTransform().a;
-      let inverter = event.deltaY > 0 ? 0.1 : -0.1;
-      inverter = inverter / txfrmA;
+
+      const ctrlModifier = event.ctrlKey ? 2 : 1;
+      const shiftModifer =  event.ctrlKey ? 2 : 1;
+
+      let scaleDelta = event.deltaY > 0 ? 0.1 : -0.1;
+
+      scaleDelta *= ctrlModifier;
+      scaleDelta *= shiftModifer;
+
+      if (txfrmA < this.settings.minimumZoom && scaleDelta < 0 ) {
+        //minimum zoom
+        return false;
+      }
+
+      if (txfrmA > this.settings.maximumZoom && scaleDelta  > 0) {
+        //maximum zoom
+        return false;
+      }
+     
+      //adjust delta for current zoom amount (txfrmA)
+      const scaleDeltaNormalized = scaleDelta / txfrmA;
+      const scaleFactor = scaleDeltaNormalized + 1;
+
       const translatedXY = CanvasHelper.MouseToCanvas(this.ctx.canvas, this.ctx, event);
-      this.ctx.translate(translatedXY.canvasXY.x* txfrmA, translatedXY.canvasXY.y* txfrmA);
-      this.ctx.scale(1 + inverter, 1 + inverter);
-      this.ctx.translate(translatedXY.canvasXY.x*-1* txfrmA, translatedXY.canvasXY.y*-1* txfrmA);
+
+      const coords = translatedXY.canvasXY;
+      this.ctx.translate(coords.x * scaleFactor, coords.y * scaleFactor);
+      this.ctx.scale(scaleFactor, scaleFactor);
+      this.ctx.translate(coords.x * -1 * scaleFactor, coords.y * -1 *scaleFactor);
       this.redrawRequest(this.ctx);
+
       return false;
     }
     return true;
   }
 
   canvasMouseClick(event: MouseEvent) {
-    if (this.ctx ) {
+    if (this.ctx) {
       const element = this.canvas?.nativeElement as HTMLCanvasElement
       const translatedXY = CanvasHelper.MouseToCanvas(element, this.ctx, event);
       this.svc.click$.next(this.createInfo(translatedXY));
@@ -76,18 +107,25 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy {
 
   canvasDrop(event: DragEvent) { 
     
-    this.dragEnd = { x: event.x, y: event.y }
+    if (this.dragStart) {
+      this.dragEnd = { x: event.x, y: event.y }
 
-    if (this.ctx) {      
-      this.clear(this.ctx);
-      const txfrm = this.ctx.getTransform();      
-      this.ctx?.translate((this.dragEnd.x - this.dragStart.x) / txfrm.a, (this.dragEnd.y - this.dragStart.y) / txfrm.d);
-      this.redrawRequest(this.ctx);
+      if (this.ctx) {      
+        this.clear(this.ctx);
+        const txfrm = this.ctx.getTransform();      
+        this.ctx?.translate((this.dragEnd.x - this.dragStart.x) / txfrm.a, (this.dragEnd.y - this.dragStart.y) / txfrm.d);
+        this.redrawRequest(this.ctx);
+      }
+      this.dragStart = undefined;
+
     }
   }
 
   canvasDragOver(event: any) { 
-    event.preventDefault();
+    if (this.dragStart) {
+      event.preventDefault(); // allow dropping into here as it is the source of drag
+    }
+    
   }
 
   resetCanvasZoom() {
