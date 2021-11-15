@@ -12,24 +12,61 @@ export class AppComponent implements OnInit {
 
   showSideBar = true;
 
-  rectangle = { x: 100, y: 100, width: 100, height: 40 };
+  rectangles: Rectangle[] = [];
+  rectangle = new Rectangle();
+  lastMessage = ''
+
+  lastUIRectangle: Rectangle | undefined;
 
   constructor(private smartCanvasSvc: NgxSmartCanvasService) {}
 
   ngOnInit(): void {
+
     this.smartCanvasSvc.ready$.pipe(filter(x => x !== undefined)).subscribe(x => { this.Draw(x as SmartCanvasInfo)});
     this.smartCanvasSvc.redrawRequest$.subscribe(x => {this.Draw(x)});
     this.smartCanvasSvc.click$.subscribe(x => this.CanvasClick(x));
     this.smartCanvasSvc.mouseOver$.subscribe(x => this.CanvasMouseOver(x));
+
+    Array(5).fill(0).forEach( (v, rowIdx) => {
+      Array(5).fill(0).forEach( (v, colIdx) => {
+        const x = this.rectangle.x + (this.rectangle.width + 20) * rowIdx;
+        const y = this.rectangle.y + (this.rectangle.height + 20) * colIdx;
+        const newR = new Rectangle();
+        newR.x = x;
+        newR.y = y;
+        newR.name = `${rowIdx},${colIdx}`;
+        this.rectangles.push(newR);              
+      });      
+    });
+
   }
 
-  CanvasMouseOver(x: SmartCanvasInfo): void {    
-    this.smartCanvasSvc.ready$.value?.ctx
-    //use x.mouseToCanvas.canvasXY to see if one of your canvas objects was passed over by the mouse
+  find(x: SmartCanvasInfo): Rectangle | undefined {
+    if (x.mouseToCanvas?.canvasXY) {
+      const canvasXY = x.mouseToCanvas.canvasXY;
+      return this.rectangles.find(r => r.x < canvasXY.x && canvasXY.x < r.x + r.width && r.y < canvasXY.y && canvasXY.y < r.y + r.height);
+    } else {
+      return undefined;
+    }
+  }
+
+  CanvasMouseOver(x: SmartCanvasInfo): void {
+    const match = this.find(x);
+    
+    if (match) {
+
+      const same = this.lastUIRectangle !== undefined && this.lastUIRectangle.x === match.x && this.lastUIRectangle.y === match.y;
+      if (!same) {
+        this.lastMessage = `hovered over ${x.componentId} ${match.name}`;
+        this.lastUIRectangle = match;
+      }
+      
+    }
   }
 
   CanvasClick(x: SmartCanvasInfo): void {
 
+    
     //  raw mouse event x/y
     console.log(`Mouse X/y: ${x.mouseToCanvas?.mouseEvent.x}, ${x.mouseToCanvas?.mouseEvent.y}`);
 
@@ -39,31 +76,22 @@ export class AppComponent implements OnInit {
     // where x/y actually fall on original canvas drawing (adjusted for scale/skew/scroll)
     console.log(`Canvas Coordinates X/y: ${x.mouseToCanvas?.canvasXY.x}, ${x.mouseToCanvas?.canvasXY.y}`);
 
-    //use x.mouseToCanvas.canvasXY to see if one of your canvas objects was clicked
-    if (x.mouseToCanvas?.canvasXY) {
-      const canvasXY = x.mouseToCanvas.canvasXY;
-      if (this.rectangle.x < canvasXY.x && canvasXY.x < this.rectangle.x + this.rectangle.width) {
-        if (this.rectangle.y < canvasXY.y && canvasXY.y < this.rectangle.y + this.rectangle.height) {
-          console.log ('Hit a rectangle!');
-        }
-      }
+    const match = this.find(x);
+    if (match) {
+      this.lastMessage = `clicked on ${x.componentId} ${match.name}`;
+      this.lastUIRectangle = match;
     }
+
   }
 
   Draw(sci: SmartCanvasInfo) {    
-    sci.ctx.fillStyle = sci.componentId === 'A' ? 'grey' : 'blue';
+    sci.ctx.fillStyle = sci.componentId === 'A' ? '#dddddd' : '#ddddff';
     sci.ctx.strokeStyle = 'black';
-    Array(5).fill(0).forEach( (v, rowIdx) => {
-      Array(5).fill(0).forEach( (v, colIdx) => {
-        const x = this.rectangle.x + (this.rectangle.width + 20) * rowIdx;
-        const y = this.rectangle.y + (this.rectangle.height + 20) * colIdx;
-        //CanvasHelper comes with library. has calculations for translating mouse to canvas and a rounded rectangle drawer
-        CanvasHelper.roundRect(sci.ctx, x, y, this.rectangle.width, this.rectangle.height, 5);
-        sci.ctx.fill();
-              
-      });      
-    });
 
+    this.rectangles.forEach(r => {
+      CanvasHelper.roundRect(sci.ctx, r.x, r.y, r.width, r.height, 5);
+      sci.ctx.fill();
+    });
   }
 
 
@@ -71,4 +99,12 @@ export class AppComponent implements OnInit {
     this.showSideBar = !this.showSideBar
   }
 
+}
+
+class Rectangle {
+  x = 100;
+  y = 100;
+  width = 100;
+  height = 40;
+  name = '';
 }

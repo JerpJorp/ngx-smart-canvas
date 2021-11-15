@@ -47,7 +47,6 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, AfterViewInit
 
   ngAfterViewInit(): void {
     this.svc.ready$.next(this.createInfo(undefined));
-    throw new Error('Method not implemented.');
   }
 
   ngOnDestroy(): void {
@@ -93,6 +92,14 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, AfterViewInit
     return true;
   }
 
+  canvasMouseOver(event: any) {
+    if (this.ctx) {
+      const element = this.canvas?.nativeElement as HTMLCanvasElement
+      const translatedXY = CanvasHelper.MouseToCanvas(element, this.ctx, event);
+      this.svc.mouseOver$.next(this.createInfo(translatedXY));
+    }
+  }
+  
   canvasMouseClick(event: MouseEvent) {
     if (this.ctx) {
       const element = this.canvas?.nativeElement as HTMLCanvasElement
