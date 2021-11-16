@@ -12,6 +12,8 @@ export class NgxSmartCanvasService {
   redrawRequest$: Subject<SmartCanvasInfo> = new Subject<SmartCanvasInfo>();
 
   click$: Subject<SmartCanvasInfo> = new Subject<SmartCanvasInfo>();
+  
+  doubleClick$: Subject<SmartCanvasInfo> = new Subject<SmartCanvasInfo>();
 
   mouseOver$: Subject<SmartCanvasInfo> = new Subject<SmartCanvasInfo>();
 

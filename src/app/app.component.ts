@@ -25,6 +25,7 @@ export class AppComponent implements OnInit {
     this.smartCanvasSvc.ready$.pipe(filter(x => x !== undefined)).subscribe(x => { this.Draw(x as SmartCanvasInfo)});
     this.smartCanvasSvc.redrawRequest$.subscribe(x => {this.Draw(x)});
     this.smartCanvasSvc.click$.subscribe(x => this.CanvasClick(x));
+    this.smartCanvasSvc.doubleClick$.subscribe(x => this.CanvasDoubleClick(x));
     this.smartCanvasSvc.mouseOver$.subscribe(x => this.CanvasMouseOver(x));
 
     Array(5).fill(0).forEach( (v, rowIdx) => {
@@ -61,6 +62,14 @@ export class AppComponent implements OnInit {
         this.lastUIRectangle = match;
       }
       
+    }
+  }
+
+  CanvasDoubleClick(x: SmartCanvasInfo): void {
+    const match = this.find(x);
+    if (match) {
+      this.lastMessage = `double clicked on ${x.componentId} ${match.name}`;
+      this.lastUIRectangle = match;
     }
   }
 

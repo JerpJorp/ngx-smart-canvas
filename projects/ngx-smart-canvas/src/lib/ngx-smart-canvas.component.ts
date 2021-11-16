@@ -57,8 +57,8 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, AfterViewInit
     if (this.ctx && this.settings.zoomable) {
       const txfrmA = this.ctx.getTransform().a;
 
-      const ctrlModifier = event.ctrlKey ? 2 : 1;
-      const shiftModifer =  event.ctrlKey ? 2 : 1;
+      const ctrlModifier = event.ctrlKey ? this.settings.ctrlZoomMultiplier : 1;
+      const shiftModifer = event.ctrlKey ? this.settings.altZoomMultiplier  : 1;
 
       let scaleDelta = event.deltaY > 0 ? 0.1 : -0.1;
 
@@ -82,9 +82,19 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, AfterViewInit
       const translatedXY = CanvasHelper.MouseToCanvas(this.ctx.canvas, this.ctx, event);
 
       const coords = translatedXY.canvasXY;
-      this.ctx.translate(coords.x * scaleFactor, coords.y * scaleFactor);
+      const mouseCoords = translatedXY.canvasMouseXy;
+
+      this.ctx.translate(mouseCoords.x, mouseCoords.y);
       this.ctx.scale(scaleFactor, scaleFactor);
-      this.ctx.translate(coords.x * -1 * scaleFactor, coords.y * -1 *scaleFactor);
+      this.ctx.translate(mouseCoords.x * -1, mouseCoords.y * -1);
+
+
+      // const coords = translatedXY.canvasXY;
+      // this.ctx.translate(coords.x * scaleFactor, coords.y * scaleFactor);
+      // this.ctx.scale(scaleFactor, scaleFactor);
+      // this.ctx.translate(coords.x * -1 * scaleFactor - scaleDelta, coords.y * -1 *scaleFactor - scaleDelta);
+
+
       this.redrawRequest(this.ctx);
 
       return false;
@@ -100,6 +110,14 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, AfterViewInit
     }
   }
   
+  canvasDoubleClick(event: MouseEvent) {
+    if (this.ctx) {
+      const element = this.canvas?.nativeElement as HTMLCanvasElement
+      const translatedXY = CanvasHelper.MouseToCanvas(element, this.ctx, event);
+      this.svc.doubleClick$.next(this.createInfo(translatedXY));
+    }
+  }
+
   canvasMouseClick(event: MouseEvent) {
     if (this.ctx) {
       const element = this.canvas?.nativeElement as HTMLCanvasElement

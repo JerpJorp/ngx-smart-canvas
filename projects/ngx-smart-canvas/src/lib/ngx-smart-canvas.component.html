@@ -7,7 +7,8 @@
     (wheel)="canvasWheel($event)"
     (dragover)="canvasDragOver($event)"
     (drop)="canvasDrop($event)"
-    (click)="canvasMouseClick($event)">
+    (click)="canvasMouseClick($event)"
+    (dblclick)="canvasDoubleClick($event)">
 
     <canvas #myCanvas [width]="settings.canvasWidth" [height]="settings.canvasHeight" (mousemove)="canvasMouseOver($event)"></canvas>
     
