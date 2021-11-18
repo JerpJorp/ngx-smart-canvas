@@ -28,8 +28,8 @@ export class AppComponent implements OnInit {
     this.smartCanvasSvc.doubleClick$.subscribe(x => this.CanvasDoubleClick(x));
     this.smartCanvasSvc.mouseOver$.subscribe(x => this.CanvasMouseOver(x));
 
-    Array(5).fill(0).forEach( (v, rowIdx) => {
-      Array(5).fill(0).forEach( (v, colIdx) => {
+    Array(20).fill(0).forEach( (v, rowIdx) => {
+      Array(20).fill(0).forEach( (v, colIdx) => {
         const x = this.rectangle.x + (this.rectangle.width + 20) * rowIdx;
         const y = this.rectangle.y + (this.rectangle.height + 20) * colIdx;
         const newR = new Rectangle();
@@ -93,13 +93,19 @@ export class AppComponent implements OnInit {
 
   }
 
-  Draw(sci: SmartCanvasInfo) {    
-    sci.ctx.fillStyle = sci.componentId === 'A' ? '#dddddd' : '#ddddff';
+  Draw(sci: SmartCanvasInfo) {
+
+    const rectColor = sci.componentId === 'A' ? '#dddddd' : '#ddddff';
+    let i = 0;
+    
     sci.ctx.strokeStyle = 'black';
 
     this.rectangles.forEach(r => {
+      sci.ctx.fillStyle = rectColor;
       CanvasHelper.roundRect(sci.ctx, r.x, r.y, r.width, r.height, 5);
       sci.ctx.fill();
+      sci.ctx.fillStyle = 'black';    
+      sci.ctx.fillText(`${i++}`, r.x + 3, r.y + 4);
     });
   }
 

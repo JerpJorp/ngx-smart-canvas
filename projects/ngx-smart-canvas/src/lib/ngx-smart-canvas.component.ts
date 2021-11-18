@@ -52,8 +52,54 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, AfterViewInit
   ngOnDestroy(): void {
     this.destroyed$.next();
   }
- 
+
   canvasWheel(event: WheelEvent) {
+    if (this.ctx && this.settings.zoomable) {
+
+      const currentTxfrm = this.ctx.getTransform();
+      const currentScale = currentTxfrm.a;
+      const currentXOffset = currentTxfrm.e;
+      const currentYOffset = currentTxfrm.f;
+
+      const ctrlModifier = event.ctrlKey ? this.settings.ctrlZoomMultiplier : 1;
+      const shiftModifer = event.ctrlKey ? this.settings.altZoomMultiplier  : 1;
+
+      let scaleDelta = event.deltaY > 0 ? 0.1 : -0.1;
+
+      scaleDelta *= ctrlModifier;
+      scaleDelta *= shiftModifer;
+
+      if (currentScale < this.settings.minimumZoom && scaleDelta < 0 ) {
+        //minimum zoom
+        return false;
+      }
+
+      if (currentScale > this.settings.maximumZoom && scaleDelta  > 0) {
+        //maximum zoom
+        return false;
+      }
+     
+      //adjust delta for current zoom amount (txfrmA)
+      const scaleDeltaNormalized = scaleDelta / currentScale;
+      const scaleFactor = scaleDeltaNormalized + 1;
+
+      const translatedXY = CanvasHelper.MouseToCanvas(this.ctx.canvas, this.ctx, event);
+
+      const coords = translatedXY.canvasXY;
+      const mouseCoords = translatedXY.canvasMouseXy;
+
+      this.ctx.translate(mouseCoords.x, mouseCoords.y);
+      this.ctx.scale(scaleFactor, scaleFactor);
+      this.ctx.translate(mouseCoords.x * -1 , mouseCoords.y * -1);
+      this.redrawRequest(this.ctx);
+
+      return false;
+    }
+    return true;
+  }
+
+ 
+  canvasWheelORIG(event: WheelEvent) {
     if (this.ctx && this.settings.zoomable) {
       const txfrmA = this.ctx.getTransform().a;
 
@@ -86,15 +132,7 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, AfterViewInit
 
       this.ctx.translate(mouseCoords.x, mouseCoords.y);
       this.ctx.scale(scaleFactor, scaleFactor);
-      this.ctx.translate(mouseCoords.x * -1, mouseCoords.y * -1);
-
-
-      // const coords = translatedXY.canvasXY;
-      // this.ctx.translate(coords.x * scaleFactor, coords.y * scaleFactor);
-      // this.ctx.scale(scaleFactor, scaleFactor);
-      // this.ctx.translate(coords.x * -1 * scaleFactor - scaleDelta, coords.y * -1 *scaleFactor - scaleDelta);
-
-
+      this.ctx.translate(mouseCoords.x * -1 , mouseCoords.y * -1);
       this.redrawRequest(this.ctx);
 
       return false;
