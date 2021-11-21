@@ -36,6 +36,10 @@ export class NgxSmartCanvasComponent implements OnInit, OnDestroy, AfterViewInit
   dragEnd: { x: number, y: number } = { x: 0, y: 0 };
 
   showReset = false;
+  
+   showPopup = false;
+   popX = 100;
+   popY = 200;
 
   private destroyed$: Subject<void> = new Subject<void>();
 

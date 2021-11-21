@@ -18,4 +18,6 @@
         <input *ngIf="showReset" type="button" (click)="resetCanvasCenter()" class="floating-button" value="Reset center"/>    
     </div>
     
+    <div *ngIf="showPopup" style="z-index:2; position:absolute; top:{{popX}}px; left:{{popY}}px">Hi
+    </div>
   </div>

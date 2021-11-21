@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { CanvasHelper, NgxSmartCanvasService, SmartCanvasInfo } from 'ngx-smart-canvas';
+import { HelperLine, IHelperPoint } from 'projects/ngx-smart-canvas/src/public-api';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -13,10 +14,21 @@ export class AppComponent implements OnInit {
   showSideBar = true;
 
   rectangles: Rectangle[] = [];
+
+  lines: Rectangle[] = [
+    {x: 100, y: 100, width: 100, height: 0, name: 'red'},
+    {x: 100, y: 100, width: 100, height: 100, name: 'green'},
+    {x: 100, y: 100, width: 50, height: 100, name: 'blue'},
+    {x: 100, y: 100, width: -100, height: -70, name: 'black'},
+  ];
+
   rectangle = new Rectangle();
-  lastMessage = ''
+  lineMessage = '';
+  nodeMessage = '';
 
   lastUIRectangle: Rectangle | undefined;
+
+  lineRectangle: Rectangle | undefined;
 
   constructor(private smartCanvasSvc: NgxSmartCanvasService) {}
 
@@ -54,21 +66,56 @@ export class AppComponent implements OnInit {
   CanvasMouseOver(x: SmartCanvasInfo): void {
     const match = this.find(x);
     
-    if (match) {
+    const lineMatch = CanvasHelper.LineHit(this.lines.map(l => this.toHelperLine(l)), x.mouseToCanvas?.canvasXY as IHelperPoint, 20);
+    this.lineMessage = lineMatch ? 'line ' + lineMatch.id : '';
 
+    if (match) {
       const same = this.lastUIRectangle !== undefined && this.lastUIRectangle.x === match.x && this.lastUIRectangle.y === match.y;
       if (!same) {
-        this.lastMessage = `hovered over ${x.componentId} ${match.name}`;
+        this.nodeMessage = `hovered over ${x.componentId} ${match.name}`;
         this.lastUIRectangle = match;
-      }
+      }      
+    }
+
+    if (this.lineRectangle) {
+      // old
+      x.ctx.clearRect(this.lineRectangle.x, this.lineRectangle.y, this.lineRectangle.width, this.lineRectangle.height);
       
     }
+
+    if (lineMatch) {
+      const r = {
+        x: lineMatch.midpoint.x - 10,
+        y: lineMatch.midpoint.y - 10,
+        width: 20,
+        height: 20,
+        name: lineMatch.id
+      }
+
+      this.lineRectangle = r;
+
+      x.ctx.fillStyle = 'white';
+      // CanvasHelper.roundRect(x.ctx, r.x , r.y, r.width, r.height, 1);
+      x.ctx.fill();
+      x.ctx.fillStyle = 'black';    
+      x.ctx.fillText(lineMatch.id, r.x, r.y+10, r.width);
+    } else {
+      this.lineRectangle = undefined;
+    }
+  }
+
+  toHelperLine(rect: Rectangle): HelperLine {
+    return new HelperLine(
+      { x: rect.x, y: rect.y },
+      { x: rect.x + rect.width, y: rect.y + rect.height },
+      rect.name
+    );
   }
 
   CanvasDoubleClick(x: SmartCanvasInfo): void {
     const match = this.find(x);
     if (match) {
-      this.lastMessage = `double clicked on ${x.componentId} ${match.name}`;
+      this.nodeMessage = `double clicked on ${x.componentId} ${match.name}`;
       this.lastUIRectangle = match;
     }
   }
@@ -87,7 +134,7 @@ export class AppComponent implements OnInit {
 
     const match = this.find(x);
     if (match) {
-      this.lastMessage = `clicked on ${x.componentId} ${match.name}`;
+      this.nodeMessage = `clicked on ${x.componentId} ${match.name}`;
       this.lastUIRectangle = match;
     }
 
@@ -107,6 +154,17 @@ export class AppComponent implements OnInit {
       sci.ctx.fillStyle = 'black';    
       sci.ctx.fillText(`${i++}`, r.x + 3, r.y + 4);
     });
+
+    this.lines.forEach(line => {
+
+      sci.ctx.strokeStyle = line.name;
+      sci.ctx.beginPath();
+      sci.ctx.moveTo(line.x, line.y);
+      sci.ctx.lineTo(line.x + line.width, line.y + line.height);
+      sci.ctx.stroke();
+    });
+
+
   }
 
 
